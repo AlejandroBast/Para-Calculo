@@ -2,6 +2,10 @@
 
 <img width="1024" height="1024" alt="Para-Calculo logo" src="https://github.com/user-attachments/assets/318954fe-b73c-421f-b56f-09498cac10ac" />
 
+# Para-Calculo — Calculadora Multivariable (Documentación Técnica)
+
+<img width="1024" height="1024" alt="Para-Calculo logo" src="https://github.com/user-attachments/assets/318954fe-b73c-421f-b56f-09498cac10ac" />
+
 ## Descripción general
 
 **Para-Calculo** es una aplicación web educativa construida con **Next.js 15** y **React 19** para visualizar superficies de funciones de dos variables (f(x,y)) en 3D y calcular derivadas parciales de forma simbólica. Está pensada para cursos de **Cálculo Multivariable**, con una interfaz moderna, responsiva y animaciones suaves.
@@ -167,5 +171,126 @@ En `app/globals.css` se definen `@keyframes` y utilidades:
 }
 
 .animate-float { animation: float linear infinite; }
-.animate-float-slow { animation: float-slow 20s ease-in-out
+.animate-float-slow { animation: float-slow 20s ease-in-out infinite; }
 ```
+
+> Sugerencia: si renders en SSR causan *mismatch*, genera valores aleatorios en `useEffect` o usa una semilla determinista.
+
+---
+
+## Lógica y funciones
+
+### `generatePlot()` (resumen)
+
+* Construye `xValues` y `yValues` con rango y paso configurables.
+* Evalúa `z` con `evaluate(functionInput, { x, y })`.
+* Actualiza `plotData` para `Plotly`.
+
+### `calculateDerivatives()` (resumen)
+
+* Obtiene expresiones simbólicas con `derivative(functionInput, 'x' | 'y')`.
+* Evalúa en (0,0) con `evaluate` y muestra panel de resultados.
+
+---
+
+## Fundamentos matemáticos
+
+* **Derivadas parciales**: (\partial f/\partial x), (\partial f/\partial y).
+* **Gradiente**: (\nabla f = (\partial f/\partial x, \partial f/\partial y)).
+* **Plano tangente** en ((x_0,y_0)): (z - z_0 = f_x(x_0,y_0)(x-x_0) + f_y(x_0,y_0)(y-y_0)).
+* **Malla de evaluación**: discretización rectangular para graficación.
+
+Se incluyen ejemplos típicos: `x^2 + y^2`, `x^2 - y^2`, `sin(x)*cos(y)`, `exp(-(x^2+y^2))`, `x*y`.
+
+---
+
+## Estilos y diseño
+
+* **Colores**: gradientes (`bg-gradient-to-br`), *glassmorphism* (`bg-white/5 backdrop-blur-sm border-white/10`).
+* **Tipografía y espaciado**: utilidades de Tailwind (`text-`, `p-`, `gap-`, `md:`...).
+* **Accesibilidad**: contraste suficiente y *focus ring* visible.
+
+---
+
+## Instalación y uso
+
+### Requisitos previos
+
+* Node.js 18+
+* npm o yarn
+
+### Pasos
+
+```bash
+# 1) Clonar o descargar
+# git clone https://github.com/<tu-usuario>/para-calculo.git
+cd para-calculo
+
+# 2) Instalar dependencias
+npm install
+
+# 3) Desarrollo
+npm run dev
+# Abre http://localhost:3000
+
+# 4) Producción
+npm run build
+npm start
+```
+
+> Si despliegas en **Vercel**, basta con `vercel` (o conectar el repo) y Vercel ejecutará `next build` automáticamente.
+
+---
+
+## Ejemplos de funciones
+
+* Paraboloide: `x^2 + y^2` → (\partial_x = 2x), (\partial_y = 2y)
+* Silla de montar: `x^2 - y^2` → (\partial_x = 2x), (\partial_y = -2y)
+* Trigonométrica: `sin(x) * cos(y)` → (\partial_x = \cos x \cos y), (\partial_y = -\sin x \sin y)
+* Gaussiana: `exp(-(x^2 + y^2))` → (\partial_x = -2x,e^{-(x^2+y^2)}), (\partial_y = -2y,e^{-(x^2+y^2)})
+* Plano: `2*x + 3*y` → derivadas constantes 2 y 3
+* Producto: `x * y` → (\partial_x = y), (\partial_y = x)
+
+**Notas de sintaxis (mathjs)**
+
+* Potencia: `^` o `**` (usar `^` en los ejemplos)
+* Multiplicación explícita: `x*y` (no `xy`)
+* Evitar superíndices Unicode (`x²`), usar `x^2`
+
+---
+
+## Solución de problemas
+
+* **No se ve el gráfico**: valida la expresión, revisa consola y que `react-plotly.js` cargue en cliente (`dynamic(..., { ssr: false })`).
+* **Derivadas `NaN`**: la función puede no ser diferenciable en (0,0), p. ej. `abs(x)+abs(y)`.
+* **Animaciones con *lag***: reduce número de partículas o aumenta la duración.
+* **Errores de hidratación**: evita `Math.random()`/`Date.now()` durante el render SSR; genera en `useEffect` o usa semilla.
+
+---
+
+## Extensiones futuras
+
+* Curvas de nivel (contornos 2D).
+* Vector gradiente y plano tangente interactivos.
+* Hessiana y clasificación de puntos críticos.
+* Exportar imagen/CSV.
+* Controles de animación (velocidad, densidad, temas).
+
+---
+
+## Licencia y contacto
+
+Proyecto con fines educativos para Cálculo Multivariable.
+
+* **mathjs** — Motor matemático
+* **Plotly.js** — Visualización 3D
+* **Next.js** — Framework React
+* **Tailwind CSS** — Estilos
+
+¿Dudas o sugerencias? Abre un *issue* en el repositorio o escribe en la sección de *discussions*.
+
+---
+
+**Última actualización**: Octubre 2025
+**Versión**: 2.0.0
+**Novedades**: Animaciones con partículas, landing mejorada, navegación entre páginas.
