@@ -1,5 +1,10 @@
 # Calculadora Multivariable - Documentación Técnica Completa
 
+<img width="1024" height="1024" alt="Para-Calculo logo" src="https://github.com/user-attachments/assets/318954fe-b73c-421f-b56f-09498cac10ac" />
+
+
+
+
 ## Descripción General
 
 Aplicación web interactiva desarrollada en **Next.js 15** con **React 19** para visualizar funciones de dos variables f(x,y) en 3D y calcular sus derivadas parciales. Diseñada como herramienta educativa para el curso de Cálculo Multivariable con una interfaz moderna y animaciones profesionales.
