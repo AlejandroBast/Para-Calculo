@@ -1,6 +1,4 @@
-# Para-Calculo — Calculadora Multivariable (Documentación Técnica)
 
-<img width="1024" height="1024" alt="Para-Calculo logo" src="https://github.com/user-attachments/assets/318954fe-b73c-421f-b56f-09498cac10ac" />
 
 # Para-Calculo — Calculadora Multivariable (Documentación Técnica)
 
@@ -294,3 +292,6 @@ Proyecto con fines educativos para Cálculo Multivariable.
 **Última actualización**: Octubre 2025
 **Versión**: 2.0.0
 **Novedades**: Animaciones con partículas, landing mejorada, navegación entre páginas.
+
+[![By: AlejandroBast](https://img.shields.io/badge/By-AlejandroBast-6b9cff)](https://github.com/AlejandroBast)
+
