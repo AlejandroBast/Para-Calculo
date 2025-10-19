@@ -358,9 +358,7 @@ Proyecto con fines educativos para Cálculo Multivariable.
 
 ---
 
-**Última actualización**: Octubre 2025
-**Versión**: 2.0.0
-**Novedades**: Animaciones con partículas, landing mejorada, navegación entre páginas.
 
 [![By: AlejandroBast](https://img.shields.io/badge/By-AlejandroBast-6b9cff)](https://github.com/AlejandroBast)
+[![By: Mike](https://img.shields.io/badge/By-miikeepp-6b9cff)](https://github.com/miikeepp)
 
