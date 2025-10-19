@@ -193,10 +193,79 @@ En `app/globals.css` se definen `@keyframes` y utilidades:
 
 ## Fundamentos matemáticos
 
-* **Derivadas parciales**: (\partial f/\partial x), (\partial f/\partial y).
-* **Gradiente**: (\nabla f = (\partial f/\partial x, \partial f/\partial y)).
-* **Plano tangente** en ((x_0,y_0)): (z - z_0 = f_x(x_0,y_0)(x-x_0) + f_y(x_0,y_0)(y-y_0)).
-* **Malla de evaluación**: discretización rectangular para graficación.
+
+
+### 1) ¿Qué estamos graficando?
+- Funciones de dos variables: $z=f(x,y)$.
+- Dibujamos la superficie evaluando $f$ en un **rectángulo** (por defecto $[-5,5]\times[-5,5]$) con un **paso** $h$ (0.5).
+- Más chico $h$ = más detalle pero más lento; más grande $h$ = más rápido pero menos detalle.
+
+---
+
+### 2) Derivadas parciales (cambios en x o en y)
+- $f_x(x,y)$: cómo cambia $f$ si mueves **x** y dejas **y** fija.  
+- $f_y(x,y)$: cómo cambia $f$ si mueves **y** y dejas **x** fija.  
+- En la app se obtienen con **mathjs** (`derivative(...)`) y se evalúan (por defecto en $(0,0)$).
+
+**Idea rápida**
+- $f_x>0$ → sube al moverte en $+x$.  
+- $f_y<0$ → baja al moverte en $+y$.
+
+---
+
+### 3) Gradiente (dirección de mayor subida)
+- $\nabla f=(f_x,f_y)$.
+- Apunta hacia donde $f$ **crece más rápido** cerca del punto.
+
+---
+
+### 4) Plano tangente (aproximación lineal)
+Si $f$ es suave en $(x_0,y_0)$:
+
+$$
+z \approx f(x_0,y_0)\;+\;f_x(x_0,y_0)\,(x-x_0)\;+\;f_y(x_0,y_0)\,(y-y_0).
+$$
+
+- Es “el mejor plano” que aproxima a la superficie cerca del punto.
+- Con las parciales, la app puede dibujarlo como capa opcional.
+
+---
+
+### 5) Malla de evaluación (grid)
+1) Creamos listas de valores para **x** y **y** (rango + paso).  
+2) Formamos la malla $(X,Y)$.  
+3) Calculamos $Z=f(X,Y)$ para graficar.
+
+Con $21$ puntos por eje (de $-5$ a $5$ cada $0.5$) se hacen $21\times21=441$ evaluaciones.
+
+---
+
+### 6) Ejemplo exprés
+$f(x,y)=\sin x \,\cos y$
+
+- $f_x=\cos x \,\cos y$, $f_y=-\sin x\,\sin y$.  
+- En $(0,0)$: $f=0,\; f_x=1,\; f_y=0$.  
+- Plano tangente en $(0,0)$: $z\approx x$.  
+  Cerca del origen la superficie parece un plano inclinado.
+
+---
+
+### 7) Ejemplos típicos (qué verás)
+- **Paraboloide** $x^2+y^2$: mínimo en $(0,0)$, simetría radial. $f_x=2x,\ f_y=2y$.  
+- **Silla** $x^2-y^2$: sube en $x$, baja en $y$. $f_x=2x,\ f_y=-2y$.  
+- **Trigonométrica** $\sin x \cos y$: ondas periódicas.  
+- **Gaussiana** $e^{-(x^2+y^2)}$: pico suave;  
+  $f_x=-2x\,e^{-(x^2+y^2)},\ \ f_y=-2y\,e^{-(x^2+y^2)}$ (ojo con el factor exponencial).  
+- **Plano** $2x+3y$: pendientes constantes.  
+- **Producto** $xy$: contornos hiperbólicos; cambia de signo por cuadrantes.
+
+---
+
+### 8) Notas prácticas
+- Funciones con puntas (p. ej. $|x|+|y|$) pueden no tener derivada en algunos puntos.  
+- Exponenciales grandes pueden “quemar” la escala; ajusta el rango.  
+- **mathjs**: usa `^` para potencias (`x^2`), escribe multiplicaciones (`x*y`), trigonometría en **radianes**.
+
 
 Se incluyen ejemplos típicos: `x^2 + y^2`, `x^2 - y^2`, `sin(x)*cos(y)`, `exp(-(x^2+y^2))`, `x*y`.
 
