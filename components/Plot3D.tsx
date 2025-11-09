@@ -31,13 +31,14 @@ export default function Plot3D({ data, functionName, markedX = 0, markedY = 0 }:
         z: [zValue],
         mode: "markers+text",
         marker: {
-          size: 12,
-          color: "red",
+          size: 14,
+          color: "#00ffff",
           symbol: "diamond",
-          line: { color: "darkred", width: 2 },
+          line: { color: "#00cccc", width: 3 },
         },
         text: [`(${markedX.toFixed(2)}, ${markedY.toFixed(2)})<br>z=${zValue.toFixed(2)}`],
         textposition: "top center",
+        textfont: { color: "#00ffff", size: 12, family: "monospace" },
         name: `Punto: (${markedX}, ${markedY})`,
         hoverinfo: "text",
         type: "scatter3d",
@@ -60,17 +61,32 @@ export default function Plot3D({ data, functionName, markedX = 0, markedY = 0 }:
         data={plotDataWithIndicator}
         layout={{
           autosize: true,
+          paper_bgcolor: "#0a0a0a",
+          plot_bgcolor: "#0a0a0a",
           scene: {
-            xaxis: { title: "x" },
-            yaxis: { title: "y" },
-            zaxis: { title: "z = f(x, y)" },
+            xaxis: {
+              title: "x",
+              gridcolor: "#333333",
+              zerolinecolor: "#555555",
+            },
+            yaxis: {
+              title: "y",
+              gridcolor: "#333333",
+              zerolinecolor: "#555555",
+            },
+            zaxis: {
+              title: "z = f(x, y)",
+              gridcolor: "#333333",
+              zerolinecolor: "#555555",
+            },
             camera: {
               eye: { x: 1.5, y: 1.5, z: 1.3 },
             },
+            bgcolor: "#0a0a0a",
           },
           title: {
             text: `f(x, y) = ${functionName}`,
-            font: { size: 18 },
+            font: { size: 18, color: "#ffffff" },
           },
           margin: { l: 0, r: 0, b: 0, t: 40 },
           annotations: [
@@ -81,10 +97,11 @@ export default function Plot3D({ data, functionName, markedX = 0, markedY = 0 }:
               x: 0.02,
               y: 0.98,
               showarrow: false,
-              bgcolor: "rgba(255, 0, 0, 0.1)",
-              bordercolor: "red",
-              borderwidth: 1,
+              bgcolor: "rgba(0, 255, 255, 0.15)",
+              bordercolor: "#00ffff",
+              borderwidth: 2,
               borderpad: 8,
+              font: { color: "#00ffff", size: 11 },
             },
           ],
         }}

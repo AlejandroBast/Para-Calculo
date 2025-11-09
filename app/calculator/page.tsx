@@ -50,7 +50,14 @@ export default function CalculatorPage() {
         y: yValues,
         z: zValues,
         type: "surface",
-        colorscale: "Viridis",
+        colorscale: [
+          [0, "#8B0000"], // Rojo oscuro (valores mínimos)
+          [0.2, "#DC143C"], // Rojo carmesí
+          [0.4, "#FF6347"], // Rojo tomate
+          [0.6, "#4169E1"], // Azul royal
+          [0.8, "#1E90FF"], // Azul dodger
+          [1, "#00BFFF"], // Azul cielo profundo (valores máximos)
+        ],
       }
     } catch (err) {
       setError("Error al evaluar la función. Verifica tu sintaxis.")
@@ -156,7 +163,13 @@ export default function CalculatorPage() {
         {showAnalysis && (
           <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-6 mb-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Análisis Matemático Avanzado</h2>
-            <AdvancedMathAnalysis functionInput={functionInput} initialX={xValue} initialY={yValue} />
+            <AdvancedMathAnalysis
+              functionInput={functionInput}
+              initialX={xValue}
+              initialY={yValue}
+              onXChange={setXValue}
+              onYChange={setYValue}
+            />
           </div>
         )}
 

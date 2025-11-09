@@ -147,13 +147,12 @@ export class MathCalculator {
       const dfdx = derivative(expression, "x")
       const dfdy = derivative(expression, "y")
 
-      // Busca puntos críticos aproximados
       const critical_points: Array<{ x: number; y: number; value: number }> = []
       let min_val = Number.POSITIVE_INFINITY
       let max_val = Number.NEGATIVE_INFINITY
 
-      const step = (xRange.max - xRange.min) / 20
-      const step_y = (yRange.max - yRange.min) / 20
+      const step = (xRange.max - xRange.min) / 100 // Aumentado de 40 a 100
+      const step_y = (yRange.max - yRange.min) / 100
 
       for (let x = xRange.min; x <= xRange.max; x += step) {
         for (let y = yRange.min; y <= yRange.max; y += step_y) {
@@ -162,24 +161,68 @@ export class MathCalculator {
             const dfdy_val = evaluate(dfdy.toString(), { x, y })
             const fx_val = evaluate(expression, { x, y })
 
-            // Si ambas derivadas son casi cero, es un punto crítico
             if (
               typeof dfdx_val === "number" &&
               typeof dfdy_val === "number" &&
               typeof fx_val === "number" &&
-              Math.abs(dfdx_val) < 0.5 &&
-              Math.abs(dfdy_val) < 0.5
+              isFinite(fx_val) &&
+              Math.abs(dfdx_val) < 0.01 && // Threshold más estricto de 0.1 a 0.01
+              Math.abs(dfdy_val) < 0.01
             ) {
-              critical_points.push({
-                x: Number.parseFloat(x.toFixed(2)),
-                y: Number.parseFloat(y.toFixed(2)),
-                value: fx_val,
-              })
-              min_val = Math.min(min_val, fx_val)
-              max_val = Math.max(max_val, fx_val)
+              // Check if this point is not too close to existing points
+              const isTooClose = critical_points.some(
+                (p) => Math.abs(p.x - x) < step * 3 && Math.abs(p.y - y) < step_y * 3,
+              )
+
+              if (!isTooClose) {
+                critical_points.push({
+                  x: Number.parseFloat(x.toFixed(3)),
+                  y: Number.parseFloat(y.toFixed(3)),
+                  value: fx_val,
+                })
+                min_val = Math.min(min_val, fx_val)
+                max_val = Math.max(max_val, fx_val)
+              }
             }
           } catch {
             // Ignore errors
+          }
+        }
+      }
+
+      if (critical_points.length === 0) {
+        for (let x = xRange.min; x <= xRange.max; x += step) {
+          for (let y = yRange.min; y <= yRange.max; y += step_y) {
+            try {
+              const dfdx_val = evaluate(dfdx.toString(), { x, y })
+              const dfdy_val = evaluate(dfdy.toString(), { x, y })
+              const fx_val = evaluate(expression, { x, y })
+
+              if (
+                typeof dfdx_val === "number" &&
+                typeof dfdy_val === "number" &&
+                typeof fx_val === "number" &&
+                isFinite(fx_val) &&
+                Math.abs(dfdx_val) < 0.05 && // Threshold más relajado
+                Math.abs(dfdy_val) < 0.05
+              ) {
+                const isTooClose = critical_points.some(
+                  (p) => Math.abs(p.x - x) < step * 3 && Math.abs(p.y - y) < step_y * 3,
+                )
+
+                if (!isTooClose) {
+                  critical_points.push({
+                    x: Number.parseFloat(x.toFixed(3)),
+                    y: Number.parseFloat(y.toFixed(3)),
+                    value: fx_val,
+                  })
+                  min_val = Math.min(min_val, fx_val)
+                  max_val = Math.max(max_val, fx_val)
+                }
+              }
+            } catch {
+              // Ignore errors
+            }
           }
         }
       }
@@ -193,7 +236,7 @@ export class MathCalculator {
           x: "Definir restricción",
           y: "Definir restricción",
         },
-        critical_points: critical_points.slice(0, 5), // Limita a 5 puntos
+        critical_points: critical_points.slice(0, 8), // Show up to 8 points
         min_value: isFinite(min_val) ? min_val : null,
         max_value: isFinite(max_val) ? max_val : null,
       }
@@ -263,6 +306,40 @@ export class MathCalculator {
         simplified: expression,
         error: `Error en la expresión: ${err instanceof Error ? err.message : "Desconocido"}`,
       }
+    }
+  }
+
+  static calculateFunctionRange(
+    expression: string,
+    xRange: { min: number; max: number },
+    yRange: { min: number; max: number },
+    samples = 50,
+  ): { min: number; max: number; points: Array<{ x: number; y: number; z: number }> } {
+    const stepX = (xRange.max - xRange.min) / samples
+    const stepY = (yRange.max - yRange.min) / samples
+    let minZ = Number.POSITIVE_INFINITY
+    let maxZ = Number.NEGATIVE_INFINITY
+    const points: Array<{ x: number; y: number; z: number }> = []
+
+    for (let x = xRange.min; x <= xRange.max; x += stepX) {
+      for (let y = yRange.min; y <= yRange.max; y += stepY) {
+        try {
+          const z = evaluate(expression, { x, y })
+          if (typeof z === "number" && isFinite(z)) {
+            minZ = Math.min(minZ, z)
+            maxZ = Math.max(maxZ, z)
+            points.push({ x, y, z })
+          }
+        } catch {
+          // Ignore evaluation errors
+        }
+      }
+    }
+
+    return {
+      min: isFinite(minZ) ? minZ : 0,
+      max: isFinite(maxZ) ? maxZ : 0,
+      points: points,
     }
   }
 }
