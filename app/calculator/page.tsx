@@ -17,8 +17,8 @@ export default function CalculatorPage() {
   const plotData = useMemo(() => {
     try {
       setError("")
-      const range = 5
-      const step = 0.5
+      const range = 10
+      const step = 1
       const xValues: number[] = []
       const yValues: number[] = []
       const zValues: number[][] = []
@@ -51,19 +51,28 @@ export default function CalculatorPage() {
         z: zValues,
         type: "surface",
         colorscale: [
-          [0, "#8B0000"], // Rojo oscuro (valores mínimos)
-          [0.2, "#DC143C"], // Rojo carmesí
-          [0.4, "#FF6347"], // Rojo tomate
-          [0.6, "#4169E1"], // Azul royal
-          [0.8, "#1E90FF"], // Azul dodger
-          [1, "#00BFFF"], // Azul cielo profundo (valores máximos)
+          [0, "#f80606ff"], // Rojo oscuro (valores mínimos)
+          [0.2, "#ff9100ff"], // Rojo carmesí
+          [0.4, "#f1f900ff"], // Rojo tomate
+          [0.6, "#84ff00ff"], // Azul royal
+          [0.8, "#0080ffff"], // Azul dodger
+          [1, "#ff00eaff"], // Azul cielo profundo (valores máximos)
         ],
       }
     } catch (err) {
-      setError("Error al evaluar la función. Verifica tu sintaxis.")
+      setError("Error al evaluar la función. Verifica tu monda sapo hpta.")
       return null
     }
   }, [functionInput])
+
+  const point = useMemo(() => {
+    try {
+      const z = evaluate(functionInput, { x: xValue, y: yValue })
+      return { x: xValue, y: yValue, z: typeof z === "number" ? z : 0 }
+    } catch {
+      return { x: xValue, y: yValue, z: 0 }
+    }
+  }, [functionInput, xValue, yValue])
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
@@ -86,7 +95,7 @@ export default function CalculatorPage() {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-3">Para-Calculo</h1>
           <p className="text-lg text-gray-700 max-w-2xl mx-auto">
-            Grafica tus funciones y analiza derivadas parciales, límites, integrales y puntos críticos.
+            Grafica tus funciones y analiza derivadas parciales, límite y integrales.
           </p>
         </div>
 
@@ -143,7 +152,6 @@ export default function CalculatorPage() {
 
             <div className="flex gap-3 flex-wrap">
               <button
-                onClick={() => plotData}
                 className="flex-1 min-w-[150px] bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
               >
                 Graficar

@@ -12,7 +12,7 @@ interface Plot3DProps {
     y: number[]
     z: number[][]
     type: string
-    colorscale: string
+    colorscale: any
   }
   functionName: string
   markedX?: number
@@ -32,16 +32,20 @@ export default function Plot3D({ data, functionName, markedX = 0, markedY = 0 }:
         mode: "markers+text",
         marker: {
           size: 14,
-          color: "#00ffff",
-          symbol: "diamond",
-          line: { color: "#00cccc", width: 3 },
+          color: "#000000ff",
+          symbol: "circle",
+          line: { color: "#a71515ff", width: 3 },
+          markedX: markedX,
+          markedY: markedY,
+
         },
         text: [`(${markedX.toFixed(2)}, ${markedY.toFixed(2)})<br>z=${zValue.toFixed(2)}`],
         textposition: "top center",
-        textfont: { color: "#00ffff", size: 12, family: "monospace" },
+        textfont: { color: "#c60808ff", size: 12, family: "monospace" },
         name: `Punto: (${markedX}, ${markedY})`,
         hoverinfo: "text",
         type: "scatter3d",
+        margin: 100,
       }
     } catch {
       return null
@@ -82,13 +86,9 @@ export default function Plot3D({ data, functionName, markedX = 0, markedY = 0 }:
             camera: {
               eye: { x: 1.5, y: 1.5, z: 1.3 },
             },
-            bgcolor: "#0a0a0a",
+            bgcolor: "#ffffffff",
           },
-          title: {
-            text: `f(x, y) = ${functionName}`,
-            font: { size: 18, color: "#ffffff" },
-          },
-          margin: { l: 0, r: 0, b: 0, t: 40 },
+          margin: { l: 20, r: 0, b: 20, t: 25 },
           annotations: [
             {
               text: `Punto evaluado: (${markedX.toFixed(2)}, ${markedY.toFixed(2)})`,
@@ -97,11 +97,11 @@ export default function Plot3D({ data, functionName, markedX = 0, markedY = 0 }:
               x: 0.02,
               y: 0.98,
               showarrow: false,
-              bgcolor: "rgba(0, 255, 255, 0.15)",
-              bordercolor: "#00ffff",
+              bgcolor: "rgba(155, 60, 60, 0.15)",
+              bordercolor: "#000000ff",
               borderwidth: 2,
               borderpad: 8,
-              font: { color: "#00ffff", size: 11 },
+              font: { color: "#ff0000ff", size: 11 },
             },
           ],
         }}

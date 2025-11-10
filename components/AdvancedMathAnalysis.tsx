@@ -301,14 +301,7 @@ export default function AdvancedMathAnalysis({
           >
             Límites
           </button>
-          <button
-            onClick={() => setActiveTab("critical")}
-            className={`flex-1 px-4 py-3 font-medium text-sm transition-colors ${
-              activeTab === "critical" ? "bg-indigo-600 text-white" : "text-gray-700 hover:bg-gray-50"
-            }`}
-          >
-            Puntos Críticos
-          </button>
+          
           <button
             onClick={() => setActiveTab("integral")}
             className={`flex-1 px-4 py-3 font-medium text-sm transition-colors ${
@@ -395,72 +388,6 @@ export default function AdvancedMathAnalysis({
                       lim ({xPoint}, {yPoint}) = <span className="font-bold">{limits.limit_2d}</span>
                     </p>
                   </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === "critical" && (
-            <div className="space-y-4">
-              <button
-                onClick={handleAnalyzeCritical}
-                className="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
-              >
-                Analizar Puntos Críticos
-              </button>
-
-              {critical && (
-                <div className="space-y-4">
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <h4 className="font-semibold text-gray-900 mb-2">Gradiente ∇f</h4>
-                    <p className="text-sm text-gray-700">
-                      ∂f/∂x = <span className="font-mono">{critical.gradient_f.x}</span>
-                    </p>
-                    <p className="text-sm text-gray-700 mt-1">
-                      ∂f/∂y = <span className="font-mono">{critical.gradient_f.y}</span>
-                    </p>
-                  </div>
-
-                  {critical.critical_points.length > 0 ? (
-                    <div className="bg-green-50 p-4 rounded-lg">
-                      <h4 className="font-semibold text-gray-900 mb-3">
-                        Puntos Críticos Encontrados ({critical.critical_points.length})
-                      </h4>
-                      <div className="space-y-2 max-h-60 overflow-y-auto">
-                        {critical.critical_points.map((point, idx) => (
-                          <div
-                            key={idx}
-                            className="text-sm text-gray-700 bg-white p-3 rounded shadow-sm flex items-center justify-between"
-                          >
-                            <div>
-                              <span className="font-semibold">Punto {idx + 1}:</span> ({point.x.toFixed(3)},{" "}
-                              {point.y.toFixed(3)})
-                            </div>
-                            <div className="text-indigo-600 font-bold">z = {point.value.toFixed(4)}</div>
-                          </div>
-                        ))}
-                      </div>
-                      {critical.min_value !== null && critical.max_value !== null && (
-                        <div className="mt-4 grid grid-cols-2 gap-3">
-                          <div className="bg-blue-100 p-3 rounded">
-                            <p className="text-xs text-gray-600 font-semibold">Valor Mínimo</p>
-                            <p className="text-lg font-bold text-blue-700">{critical.min_value.toFixed(4)}</p>
-                          </div>
-                          <div className="bg-red-100 p-3 rounded">
-                            <p className="text-xs text-gray-600 font-semibold">Valor Máximo</p>
-                            <p className="text-lg font-bold text-red-700">{critical.max_value.toFixed(4)}</p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                      <p className="text-sm text-yellow-800">
-                        No se encontraron puntos críticos en el rango [-10, 10] × [-10, 10]. Intenta con una función
-                        diferente o ajusta el rango de búsqueda.
-                      </p>
-                    </div>
-                  )}
                 </div>
               )}
             </div>

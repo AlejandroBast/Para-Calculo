@@ -36,6 +36,14 @@ export interface IntegralResult {
 }
 
 export class MathCalculator {
+  static evaluateFunction(expression: string, xPoint = 0, yPoint = 0) {
+    try {
+      const v = evaluate(expression, { x: xPoint, y: yPoint })
+      return typeof v === "number" ? v : 0
+    } catch {
+      return 0
+    }
+  }
   // Calcula derivadas parciales con valores en un punto específico
   static calculatePartialDerivatives(expression: string, xPoint = 0, yPoint = 0): DerivativeResult {
     try {
