@@ -1,5 +1,3 @@
-
-
 # Para-Calculo — Calculadora Multivariable (Documentación Técnica)
 
 <img width="1024" height="1024" alt="Para-Calculo logo" src="https://github.com/user-attachments/assets/318954fe-b73c-421f-b56f-09498cac10ac" />
@@ -13,352 +11,339 @@
 1. [Arquitectura](#arquitectura)
 2. [Tecnologías y dependencias](#tecnologías-y-dependencias)
 3. [Estructura del proyecto](#estructura-del-proyecto)
-4. [Componentes principales](#componentes-principales)
-5. [Animaciones](#animaciones)
-6. [Lógica y funciones](#lógica-y-funciones)
-7. [Fundamentos matemáticos](#fundamentos-matemáticos)
-8. [Estilos y diseño](#estilos-y-diseño)
-9. [Instalación y uso](#instalación-y-uso)
-10. [Ejemplos de funciones](#ejemplos-de-funciones)
-11. [Solución de problemas](#solución-de-problemas)
-12. [Extensiones futuras](#extensiones-futuras)
-13. [Licencia y contacto](#licencia-y-contacto)
+
+# Para-Calculo — Calculadora Multivariable
+
+Aplicación educativa para visualizar funciones de dos variables y realizar análisis básico y avanzado (derivadas parciales, límites, integrales y más). La app está implementada con Next.js + React y usa mathjs para cálculos simbólicos y numéricos, y Plotly para la visualización 3D.
+
+Contenido de este README (resumido)
+
+- Qué hace la aplicación
+- Cómo usar la interfaz
+- Cómo calcula derivadas, límites e integrales (fórmulas y métodos)
+- Ejemplos y recomendaciones prácticas
+- Instalación, pruebas y próximas mejoras
 
 ---
 
-## Arquitectura
+## Qué hace la aplicación
 
-**Patrones y organización**
-
-* **App Router de Next.js**: separación clara entre *pages* (landing y calculadora) y *layout* raíz.
-* **Componentes reutilizables**: UI desacoplada (gráfico 3D, animaciones de fondo, etc.).
-* **Interactividad en cliente**: componentes con `'use client'` cuando requieren *hooks* o APIs del navegador.
-* **Estado local** con `useState` y cálculo bajo demanda.
-
-**Tecnologías core**
-
-* **Next.js 15** (App Router, compatibilidad SSR/CSR según necesidad).
-* **React 19**.
-* **TypeScript** para *type safety*.
-* **Tailwind CSS** (utilidades + animaciones personalizadas).
+- Grafica superficies 3D de funciones de dos variables: $z=f(x,y)$.
+- Permite evaluar la función en un punto $(x_0,y_0)$ y ver el valor $z_0=f(x_0,y_0)$.
+- Calcula derivadas parciales simbólicas y las evalúa en un punto.
+- Aproxima límites y realiza integrales dobles por suma de Riemann (aproximación numérica).
+- Ofrece controles interactivos (sliders, inputs numéricos, auto-update y posibilidad de configurar rango y resolución).
 
 ---
 
-## Tecnologías y dependencias
+## Cómo usar la interfaz (rápido)
 
-### mathjs
-
-* **Uso**: evaluación matemática y diferenciación simbólica.
-* **APIs**: `parse`, `compile`, `evaluate`, `derivative`.
-
-```ts
-import { parse, evaluate, derivative } from "mathjs";
-
-const node = parse("x^2 + y^2");
-const compiled = node.compile();
-const result = compiled.evaluate({ x: 1, y: 2 }); // 5
-```
-
-### react-plotly.js + plotly.js
-
-* **Uso**: visualización de superficies 3D (`type: 'surface'`).
-* **Interacción**: rotar, *zoom*, *pan*, *reset*.
-* **Escalas de color**: por ejemplo `Viridis`.
-
-### Tailwind CSS
-
-* **Uso**: diseño *utility-first*, gradientes, *backdrop blur*, *responsive*, y clases de animación.
+1. Ingresa una función en la caja principal, por ejemplo `x^2 + y^2` o `sin(x)*cos(y)`.
+2. Ajusta el rango (±R) y la resolución (step) para la malla de evaluación. Valores por defecto razonables: R=5, step=0.5.
+3. Usa los controles `x` y `y` (slider + input numérico) para seleccionar el punto donde evaluar; el marcador en el gráfico mostrará $f(x,y)$.
+4. Activa/desactiva `Auto-update` para que la gráfica y los cálculos se actualicen automáticamente o requieran que presiones `Graficar`.
+5. En la sección de análisis (si está habilitada) puedes ver derivadas, límites, integrales y animaciones de recorrido por la superficie.
 
 ---
 
-## Estructura del proyecto
+## Derivadas parciales — qué son y cómo las calcula la app
 
-```
-para-calculo/
-├── app/
-│   ├── page.tsx               # Landing
-│   ├── calculator/
-│   │   └── page.tsx           # Calculadora
-│   ├── layout.tsx             # Layout raíz
-│   └── globals.css            # Estilos globales + keyframes
-├── components/
-│   ├── Plot3D.tsx             # Visualización 3D
-│   └── FloatingParticles.tsx  # Animación de fondo
-├── package.json
-└── README.md
-```
+Matemáticamente, las derivadas parciales en un punto $(x_0,y_0)$ se definen como:
 
----
+$f_x(x_0,y_0) = \lim_{h\to 0} \dfrac{f(x_0+h,y_0)-f(x_0,y_0)}{h},$
 
-## Componentes principales
+$f_y(x_0,y_0) = \lim_{h\to 0} \dfrac{f(x_0,y_0+h)-f(x_0,y_0)}{h}.$
 
-### Landing (`app/page.tsx`)
+Cómo las calcula la app:
 
-* Fondo con gradiente y **`<FloatingParticles />`**.
-* Título con gradiente de texto (Tailwind `bg-clip-text` + `text-transparent`).
-* Grid de características (responsive) y botón **CTA** que navega a `/calculator`.
+- Symbolic (mathjs): por defecto usamos la capacidad simbólica de mathjs (`derivative(expr, 'x')`) para obtener las expresiones simbólicas de $f_x$ y $f_y$ cuando la expresión es simbólicamente diferenciable.
+  - Ventaja: se obtiene la forma analítica (por ejemplo `2*x` para `x^2`).
+  - Ejemplo en código: `const dfdx = derivative(functionInput, 'x').toString()`.
 
-### Calculadora (`app/calculator/page.tsx`)
+- Evaluación numérica: una vez obtenida la expresión simbólica, evaluamos la expresión en $(x_0,y_0)$ con `evaluate(expr, {x: x0, y: y0})`.
 
-**Estado**
+Fallback / numérico:
 
-```ts
-const [functionInput, setFunctionInput] = useState("x^2 + y^2");
-const [plotData, setPlotData] = useState<any>(null);
-const [derivatives, setDerivatives] = useState<{
-  dfdx: string; dfdy: string; dfdxAt0: number; dfdyAt0: number;
-} | null>(null);
-const [error, setError] = useState("");
-const [showDerivatives, setShowDerivatives] = useState(false);
-```
+- Si por algún motivo la derivada simbólica no es aplicable (por ejemplo expresiones no diferenciables o construcciones no soportadas), la app puede usar una aproximación por diferencias finitas centradas:
 
-**Funciones clave**
+$f_x(x_0,y_0) \approx \dfrac{f(x_0+h,y_0)-f(x_0-h,y_0)}{2h}$
 
-* `generatePlot()`: genera malla ([-5,5]\times[-5,5]) con paso `0.5` y evalúa `z = f(x,y)` en cada punto (441 evaluaciones). Actualiza `plotData`.
-* `calculateDerivatives()`: deriva simbólicamente con `derivative()` y evalúa en (0,0).
+con $h$ pequeño (por ejemplo $h=10^{-4}$). Este método está implementable como respaldo y es útil para funciones con símbolos no soportados por la diferenciación simbólica.
 
-### Plot 3D (`components/Plot3D.tsx`)
+Interpretación práctica:
 
-```ts
-const plotData = [{
-  type: 'surface' as const,
-  x: data.x,
-  y: data.y,
-  z: data.z,
-  colorscale: 'Viridis',
-  showscale: true,
-}];
-
-const layout = {
-  autosize: true,
-  scene: {
-    xaxis: { title: 'X' },
-    yaxis: { title: 'Y' },
-    zaxis: { title: 'Z = f(x,y)' },
-    camera: { eye: { x: 1.5, y: 1.5, z: 1.3 } },
-  },
-  margin: { l: 0, r: 0, t: 0, b: 0 },
-};
-```
-
-### Animación de fondo (`components/FloatingParticles.tsx`)
-
-* Partículas con tamaño, retraso y duración variables.
-* Símbolos matemáticos con animación lenta (`animate-float-slow`).
-* Contenedor `fixed inset-0 pointer-events-none` para no bloquear la UI.
+- Si $f_x(x_0,y_0)>0$ la función aumenta si movemos $x$ en sentido positivo manteniendo $y$ fijo.
+- El vector gradiente $\nabla f = (f_x, f_y)$ indica la dirección de máximo incremento.
 
 ---
 
-## Animaciones
+## Límites — cómo aproximamos y qué se muestra
 
-En `app/globals.css` se definen `@keyframes` y utilidades:
+Matemáticamente, el límite bidimensional en $(x_0,y_0)$ es:
 
-```css
-@keyframes float {
-  0%   { transform: translateY(100vh) rotate(0); opacity: 0; }
-  10%  { opacity: 1; }
-  90%  { opacity: 1; }
-  100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
-}
+$\lim_{(x,y)\to(x_0,y_0)} f(x,y)$
 
-@keyframes float-slow {
-  0%,100% { transform: translateY(0) translateX(0) rotate(0deg); }
-  25% { transform: translateY(-20px) translateX(10px) rotate(5deg); }
-  50% { transform: translateY(-40px) translateX(-10px) rotate(-5deg); }
-  75% { transform: translateY(-20px) translateX(10px) rotate(5deg); }
-}
+En la práctica la app usa aproximaciones numéricas y comprobaciones por varias rutas:
 
-.animate-float { animation: float linear infinite; }
-.animate-float-slow { animation: float-slow 20s ease-in-out infinite; }
-```
+- Aproximación por ejes: evaluar `f(x0 ± h, y0)` y `f(x0, y0 ± h)` con $h$ pequeño (por ejemplo $10^{-4}$) para ver consistencia lateral.
+- Aproximación radial: evaluar `f(x0 + h \cos t, y0 + h \sin t)` para varios ángulos `t` y comparar resultados.
+- Evaluación directa: `f(x0,y0)` cuando es finita y la función está definida en el punto.
 
-> Sugerencia: si renders en SSR causan *mismatch*, genera valores aleatorios en `useEffect` o usa una semilla determinista.
+Decisión práctica:
+
+- Si las evaluaciones por diferentes rutas convergen al mismo número (dentro de una tolerancia), mostramos ese valor como aproximación del límite.
+- Si los resultados divergen (o cambia según la ruta), la app señala que el límite puede no existir.
+
+Ejemplo: para `f(x,y) = x*y/(x^2+y^2)` en $(0,0)$ las aproximaciones por distintas rectas muestran dependencia de la pendiente → límite no existe.
 
 ---
+
+## Integrales dobles — método numérico usado
+
+Para aproximar integrales dobles
+
+$I = \iint_{D} f(x,y)\,dA$
+
+la app utiliza aproximación por suma de Riemann (método de rectángulos):
+
+1. Dividir el dominio $D = [a,b]\times[c,d]$ en una cuadrícula $N_x \times N_y$ (según `step` y `range`).
+2. Evaluar $f$ en el punto representativo de cada sub-rectángulo.
+3. Sumar $f(x_i,y_j)\cdot \Delta A$, donde $\Delta A = \Delta x \Delta y$.
+
+Fórmula aproximada:
+
+$I \approx \sum_{i=1}^{N_x} \sum_{j=1}^{N_y} f(x_i,y_j)\,\Delta x\,\Delta y.$
+
+Detalles de implementación:
+
+- Por defecto usamos un número moderado de subdivisiones para mantener interactividad (p. ej. `subdivisions = 20..50`).
+- Resultado: aproximación numérica (no simbólica). Para integrales exactas simbólicas efectuar con CAS externo (no implementado aquí).
+
+---
+
+## Plano tangente y Hessiana (qué más se puede mostrar)
+
+- Plano tangente en $(x_0,y_0)$:
+
+$z = f(x_0,y_0) + f_x(x_0,y_0)(x-x_0) + f_y(x_0,y_0)(y-y_0).$
+
+- Hessiana (matriz de segundas derivadas):
+
+$H_f = \begin{pmatrix} f_{xx} & f_{xy} \\ f_{yx} & f_{yy} \end{pmatrix}$
+
+Se puede usar la Hessiana para clasificar puntos críticos (mínimo, máximo, silla) mediante el criterio de determinante y valores propios.
+
+---
+
+## Ejemplos rápidos y fórmulas (útiles para enseñar)
+
+- $f(x,y)=x^2+y^2$ → $f_x=2x$, $f_y=2y$, gradiente $(2x,2y)$, plano tangente en $(x_0,y_0)$: $z = x_0^2+y_0^2 + 2x_0(x-x_0)+2y_0(y-y_0)$.
+- $f(x,y)=x^2-y^2$ → $f_x=2x$, $f_y=-2y$ (silla si signos opuestos).
+- $f(x,y)=\sin x \cos y$ → $f_x=\cos x \cos y$, $f_y=-\sin x \sin y$.
+- $f(x,y)=e^{-(x^2+y^2)}$ → $f_x=-2x e^{-(x^2+y^2)}$, $f_y=-2y e^{-(x^2+y^2)}$.
+
+---
+
+## Instalación y ejecución
+
+```bash
+git clone https://github.com/AlejandroBast/Para-Calculo.git
+cd Para-Calculo
+npm install
+npm run dev
+# Abre http://localhost:3000
+```
+
+Notas:
+
+- Node 18+ recomendado.
+- `mathjs` se usa para diferenciación simbólica; para integrales y límites usamos aproximaciones numéricas.
+
+---
+
+## Sugerencias de uso y limitaciones
+
+- Evitar `step` demasiado pequeño con rangos grandes: el número de evaluaciones crece como $O((2R/step)^2)$ y puede bloquear el navegador.
+- Para funciones no definidas en algunos puntos (divisiones por cero), la app captura errores y asigna `0` o marca el punto como indefinido; revisa la consola si ves valores extraños.
+- Algunas construcciones avanzadas (condicionales complejas, funciones definidas por piezas) pueden no diferenciarse simbólicamente; entonces usar diferencias finitas como respaldo.
+
+---
+
+## Qué añadí en este README (resumen técnico)
+
+- Explicación clara y detallada de cómo se calculan derivadas parciales (simbólico y fallback numérico), límites (métodos de aproximación) e integrales dobles (suma de Riemann).
+- Ejemplos y fórmulas clave para usar en clase o documentación.
+- Indicaciones de rendimiento y buenas prácticas para parámetros de la malla.
+
+---
+
+Si quieres que incluya imágenes, diagramas de gradiente/plano tangente o una sección con ejercicios guiados (por ejemplo: "Encuentra y clasifica puntos críticos para estas funciones") lo agrego en la próxima iteración.
+
+Contacto: abre un issue o PR en el repositorio y propón cambios.
 
 ## Lógica y funciones
 
-### `generatePlot()` (resumen)
+En esta sección profundizamos en las funciones clave del código, su contrato (entradas/salidas), cómo se implementan en la práctica y qué comportamientos/errores gestionar.
 
-* Construye `xValues` y `yValues` con rango y paso configurables.
-* Evalúa `z` con `evaluate(functionInput, { x, y })`.
-* Actualiza `plotData` para `Plotly`.
+Resumen rápido (contrato)
 
-### `calculateDerivatives()` (resumen)
+- generatePlot(functionInput, range, step) -> PlotData | null
+  - inputs: expresión en string (mathjs), rango R (número), step (número)
+  - output: objeto con { x: number[], y: number[], z: number[][], type: 'surface', colorscale }
+  - errores: devuelve null y setea mensaje de error si la evaluación falla
 
-* Obtiene expresiones simbólicas con `derivative(functionInput, 'x' | 'y')`.
-* Evalúa en (0,0) con `evaluate` y muestra panel de resultados.
+- calculateDerivatives(functionInput, x0, y0) -> { dfdxExpr, dfdyExpr, dfdxVal, dfdyVal }
+  - inputs: expresión, punto de evaluación
+  - output: expresiones simbólicas y valores numéricos evaluados en (x0,y0)
 
----
+- calculateLimits(functionInput, x0, y0) -> LimitResult
+  - aproxima límite por varias rutas (ejes, radial) y reporta consistencia
 
-## Fundamentos matemáticos
+- approximateDoubleIntegral(functionInput, xRange, yRange, subdivisions) -> number
+  - aproximación por suma de Riemann
 
+Detalle de las implementaciones clave
 
+1. generatePlot (malla y evaluación)
 
-### 1) ¿Qué estamos graficando?
-- Funciones de dos variables: $z=f(x,y)$.
-- Dibujamos la superficie evaluando $f$ en un **rectángulo** (por defecto $[-5,5]\times[-5,5]$) con un **paso** $h$ (0.5).
-- Más chico $h$ = más detalle pero más lento; más grande $h$ = más rápido pero menos detalle.
+Comportamiento:
 
----
+- Construye arrays de valores para x e y desde -R a R usando `for (let x = -R; x <= R; x += step)`.
+- Evalúa `z = evaluate(functionInput, { x, y })` para cada par (x,y) y monta la matriz `zValues` que acepta Plotly.
+- Normaliza valores y atrapa excepciones por evaluación, rellenando `0` (o NaN) cuando la evaluación falla.
 
-### 2) Derivadas parciales (cambios en x o en y)
-- $f_x(x,y)$: cómo cambia $f$ si mueves **x** y dejas **y** fija.  
-- $f_y(x,y)$: cómo cambia $f$ si mueves **y** y dejas **x** fija.  
-- En la app se obtienen con **mathjs** (`derivative(...)`) y se evalúan (por defecto en $(0,0)$).
+Puntos importantes del código:
 
-**Idea rápida**
-- $f_x>0$ → sube al moverte en $+x$.  
-- $f_y<0$ → baja al moverte en $+y$.
+```ts
+const xValues: number[] = [];
+for (let x = -range; x <= range; x += step) xValues.push(Number(x.toFixed(6)));
 
----
-
-### 3) Gradiente (dirección de mayor subida)
-- $\nabla f=(f_x,f_y)$.
-- Apunta hacia donde $f$ **crece más rápido** cerca del punto.
-
----
-
-### 4) Plano tangente (aproximación lineal)
-Si $f$ es suave en $(x_0,y_0)$:
-
-$$
-z \approx f(x_0,y_0)\;+\;f_x(x_0,y_0)\,(x-x_0)\;+\;f_y(x_0,y_0)\,(y-y_0).
-$$
-
-- Es “el mejor plano” que aproxima a la superficie cerca del punto.
-- Con las parciales, la app puede dibujarlo como capa opcional.
-
----
-
-### 5) Malla de evaluación (grid)
-1) Creamos listas de valores para **x** y **y** (rango + paso).  
-2) Formamos la malla $(X,Y)$.  
-3) Calculamos $Z=f(X,Y)$ para graficar.
-
-Con $21$ puntos por eje (de $-5$ a $5$ cada $0.5$) se hacen $21\times21=441$ evaluaciones.
-
----
-
-### 6) Ejemplo exprés
-$f(x,y)=\sin x \,\cos y$
-
-- $f_x=\cos x \,\cos y$, $f_y=-\sin x\,\sin y$.  
-- En $(0,0)$: $f=0,\; f_x=1,\; f_y=0$.  
-- Plano tangente en $(0,0)$: $z\approx x$.  
-  Cerca del origen la superficie parece un plano inclinado.
-
----
-
-### 7) Ejemplos típicos (qué verás)
-- **Paraboloide** $x^2+y^2$: mínimo en $(0,0)$, simetría radial. $f_x=2x,\ f_y=2y$.  
-- **Silla** $x^2-y^2$: sube en $x$, baja en $y$. $f_x=2x,\ f_y=-2y$.  
-- **Trigonométrica** $\sin x \cos y$: ondas periódicas.  
-- **Gaussiana** $e^{-(x^2+y^2)}$: pico suave;  
-  $f_x=-2x\,e^{-(x^2+y^2)},\ \ f_y=-2y\,e^{-(x^2+y^2)}$ (ojo con el factor exponencial).  
-- **Plano** $2x+3y$: pendientes constantes.  
-- **Producto** $xy$: contornos hiperbólicos; cambia de signo por cuadrantes.
-
----
-
-### 8) Notas prácticas
-- Funciones con puntas (p. ej. $|x|+|y|$) pueden no tener derivada en algunos puntos.  
-- Exponenciales grandes pueden “quemar” la escala; ajusta el rango.  
-- **mathjs**: usa `^` para potencias (`x^2`), escribe multiplicaciones (`x*y`), trigonometría en **radianes**.
-
-
-Se incluyen ejemplos típicos: `x^2 + y^2`, `x^2 - y^2`, `sin(x)*cos(y)`, `exp(-(x^2+y^2))`, `x*y`.
-
----
-
-## Estilos y diseño
-
-* **Colores**: gradientes (`bg-gradient-to-br`), *glassmorphism* (`bg-white/5 backdrop-blur-sm border-white/10`).
-* **Tipografía y espaciado**: utilidades de Tailwind (`text-`, `p-`, `gap-`, `md:`...).
-* **Accesibilidad**: contraste suficiente y *focus ring* visible.
-
----
-
-## Instalación y uso
-
-### Requisitos previos
-
-* Node.js 18+
-* npm o yarn
-
-### Pasos
-
-```bash
-# 1) Clonar o descargar
-# git clone https://github.com/<tu-usuario>/para-calculo.git
-cd para-calculo
-
-# 2) Instalar dependencias
-npm install
-
-# 3) Desarrollo
-npm run dev
-# Abre http://localhost:3000
-
-# 4) Producción
-npm run build
-npm start
+const zValues: number[][] = [];
+for (let i = 0; i < yValues.length; i++) {
+  const row: number[] = [];
+  for (let j = 0; j < xValues.length; j++) {
+    try {
+      const z = evaluate(functionInput, { x: xValues[j], y: yValues[i] });
+      row.push(typeof z === "number" ? z : 0);
+    } catch {
+      row.push(0);
+    }
+  }
+  zValues.push(row);
+}
 ```
 
-> Si despliegas en **Vercel**, basta con `vercel` (o conectar el repo) y Vercel ejecutará `next build` automáticamente.
+Notas y mejoras posibles:
+
+- Evitar generar mallas con más de N puntos (por ejemplo N = 10000) y mostrar aviso.
+- Soportar distintos modos (centros, esquinas, subdivisiones): elegir punto representativo para la suma/integral.
+
+2. calculateDerivatives (simbólico + evaluación)
+
+Comportamiento:
+
+- Intenta obtener expresiones simbólicas con `derivative(expr, 'x')` y `derivative(expr, 'y')`.
+- Evalúa las expresiones en (x0,y0) con `evaluate`.
+
+Ejemplo (código):
+
+```ts
+const dfdxExpr = derivative(functionInput, "x").toString();
+const dfdyExpr = derivative(functionInput, "y").toString();
+const dfdxVal = evaluate(dfdxExpr, { x: x0, y: y0 });
+const dfdyVal = evaluate(dfdyExpr, { x: x0, y: y0 });
+```
+
+Fallback numérico (centrado):
+
+```ts
+const h = 1e-4;
+const fxh = evaluate(functionInput, { x: x0 + h, y: y0 });
+const fxmh = evaluate(functionInput, { x: x0 - h, y: y0 });
+const approx_dfdx = (fxh - fxmh) / (2 * h);
+```
+
+3. calculateLimits (estrategia híbrida)
+
+Comportamiento práctico que implementa la app:
+
+- Evaluaciones por ejes (x0±h, y0) y (x0, y0±h).
+- Evaluaciones por varias direcciones radiales con `t` en [0,2π): `x = x0 + h cos t`, `y = y0 + h sin t`.
+- Si los valores numéricos convergen (dentro de una tolerancia), se reporta el límite aproximado; si no, se indica posible inexistencia del límite.
+
+4. approximateDoubleIntegral (suma de Riemann)
+
+Pseudocódigo:
+
+```ts
+const dx = (xMax - xMin) / Nx;
+const dy = (yMax - yMin) / Ny;
+let sum = 0;
+for (let i = 0; i < Nx; i++) {
+  for (let j = 0; j < Ny; j++) {
+    const x = xMin + (i + 0.5) * dx;
+    const y = yMin + (j + 0.5) * dy;
+    sum += evaluate(expr, { x, y }) * dx * dy;
+  }
+}
+return sum;
+```
+
+Control de errores y valores no finitos:
+
+- Ignorar (o tratar como 0) las evaluaciones que produzcan NaN o ±Infinity. También puede agregarse una bandera `strict` para abortar la integral si hay demasiados puntos inválidos.
+
+5. Utilidad compartida: MathCalculator
+
+El archivo `lib/math-utils.ts` contiene utilidades reutilizables:
+
+- `calculatePartialDerivatives(expression, xPoint, yPoint)` → devuelve expresiones y valores numéricos.
+- `evaluateFunction(expression, x, y)` → wrapper seguro para `evaluate` que captura errores.
+- `calculateLimits`, `approximateDoubleIntegral`, `calculateFunctionRange`, `analyzeCriticalPoints`.
+
+Ejemplo de uso desde un componente:
+
+```ts
+import { MathCalculator } from "@/lib/math-utils";
+
+const z = MathCalculator.evaluateFunction(expr, x, y);
+const derivs = MathCalculator.calculatePartialDerivatives(expr, x, y);
+```
+
+6. Interacción entre componente y visualización (contrato de Plot3D)
+
+Plot3D espera `data` con la forma `{ x: number[], y: number[], z: number[][], type: 'surface', colorscale }` y acepta opcionalmente un `point` o `markedX/markedY` para mostrar un indicador.
+
+Comportamiento esperado:
+
+- Si `point` está definido, Plot3D dibuja un `scatter3d` con el marcador y una proyección vertical además de una etiqueta de texto con el valor z.
+- Plot3D emite eventos `onClick` (si se captura) con las coordenadas del punto clicado; el padre puede usarlo para actualizar `x0,y0`.
+
+7. Manejo de errores y UX
+
+- Validación de la expresión: se recomienda envolver `evaluate` en try/catch y mostrar mensajes claros al usuario.
+- Evitar recálculos inmediatos sin debounce cuando el `step` es muy pequeño o cuando la malla produciría > 50k evaluaciones.
+- Cuando detectamos un número excesivo de puntos a generar, mostrar un modal/aviso y pedir confirmación del usuario.
+
+8. Casos borde y consideraciones numéricas
+
+- Funciones no definidas (por ejemplo división por cero): la app captura excepciones y muestra `0` u otro valor neutro; para un comportamiento más académico se puede marcar como indefinido.
+- Puntos con comportamiento oscilatorio (singularidades esenciales) requieren aumentar las rutas/muestras en `calculateLimits`.
+- Derivadas simbólicas pueden devolver expresiones que mathjs no evalúa numéricamente en ciertos casos; en ese caso usar fallback numérico.
+
+9. Tests rápidos y verificación
+
+- Unit tests propuestos (jest / vitest):
+  - `generatePlot` con `x^2+y^2` produce z central ~0 en (0,0).
+  - `calculatePartialDerivatives` con `x^2+y^2` devuelve `2*x` y `2*y` y valores numéricos esperados.
+  - `approximateDoubleIntegral` sobre `1` en [0,1]x[0,1] ≈ 1.
+
+10. Rendimiento y recomendaciones
+
+- Seleccionar por defecto `range=5` y `step=0.5` para equilibrar calidad y velocidad.
+- Añadir un limite superior de puntos (por ejemplo 40k) y calcular el número de celdas como `((2*range)/step + 1)^2`.
+- Considerar mover cálculos pesados a un WebWorker o a un servicio backend si quieres mallas interactivas muy finas.
 
 ---
 
-## Ejemplos de funciones
-
-* Paraboloide: `x^2 + y^2` → (\partial_x = 2x), (\partial_y = 2y)
-* Silla de montar: `x^2 - y^2` → (\partial_x = 2x), (\partial_y = -2y)
-* Trigonométrica: `sin(x) * cos(y)` → (\partial_x = \cos x \cos y), (\partial_y = -\sin x \sin y)
-* Gaussiana: `exp(-(x^2 + y^2))` → (\partial_x = -2x,e^{-(x^2+y^2)}), (\partial_y = -2y,e^{-(x^2+y^2)})
-* Plano: `2*x + 3*y` → derivadas constantes 2 y 3
-* Producto: `x * y` → (\partial_x = y), (\partial_y = x)
-
-**Notas de sintaxis (mathjs)**
-
-* Potencia: `^` o `**` (usar `^` en los ejemplos)
-* Multiplicación explícita: `x*y` (no `xy`)
-* Evitar superíndices Unicode (`x²`), usar `x^2`
-
----
-
-## Solución de problemas
-
-* **No se ve el gráfico**: valida la expresión, revisa consola y que `react-plotly.js` cargue en cliente (`dynamic(..., { ssr: false })`).
-* **Derivadas `NaN`**: la función puede no ser diferenciable en (0,0), p. ej. `abs(x)+abs(y)`.
-* **Animaciones con *lag***: reduce número de partículas o aumenta la duración.
-* **Errores de hidratación**: evita `Math.random()`/`Date.now()` durante el render SSR; genera en `useEffect` o usa semilla.
-
----
-
-## Extensiones futuras
-
-* Curvas de nivel (contornos 2D).
-* Vector gradiente y plano tangente interactivos.
-* Hessiana y clasificación de puntos críticos.
-* Exportar imagen/CSV.
-* Controles de animación (velocidad, densidad, temas).
-
----
-
-## Licencia y contacto
-
-Proyecto con fines educativos para Cálculo Multivariable.
-
-* **mathjs** — Motor matemático
-* **Plotly.js** — Visualización 3D
-* **Next.js** — Framework React
-* **Tailwind CSS** — Estilos
-
-¿Dudas o sugerencias? Abre un *issue* en el repositorio o escribe en la sección de *discussions*.
-
----
-
-
-[![By: AlejandroBast](https://img.shields.io/badge/By-AlejandroBast-6b9cff)](https://github.com/AlejandroBast)
-[![By: Mike](https://img.shields.io/badge/By-miikeepp-6b9cff)](https://github.com/miikeepp)
-
+Con esto la sección de "Lógica y funciones" queda ampliada con detalles técnicos y prácticos: si quieres que añada fragmentos concretos de código (por ejemplo, la función `generatePlot` completa tal y como la usas en `page.tsx`), lo agrego en la siguiente iteración y dejo el README listo con un bloque de código formateado y comentado.
